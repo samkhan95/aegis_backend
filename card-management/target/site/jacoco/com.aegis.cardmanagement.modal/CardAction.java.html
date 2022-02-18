@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CardAction.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cardmanagement</a> &gt; <a href="index.source.html" class="el_package">com.aegis.cardmanagement.modal</a> &gt; <span class="el_source">CardAction.java</span></div><h1>CardAction.java</h1><pre class="source lang-java linenums">package com.aegis.cardmanagement.modal;
+
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
+
+import javax.persistence.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.UUID;
+
+@Entity
+@Table
+@Getter
+<span class="pc" id="L16">@Setter</span>
+<span class="fc" id="L17">public class CardAction {</span>
+
+<span class="fc" id="L19">    public enum ActionType {CREATE, DELETE, ASSIGN, UNASSIGN, BLOCK, UNBLOCK, EXTEND, UPDATE}</span>
+
+<span class="fc" id="L21">    public enum ActionStatus {COMPLETED, NOTCOMPLETE}</span>
+
+<span class="fc" id="L23">    public enum ActionCreationType {SYSTEMGENERATED, USERGENERATED}</span>
+
+    @Id
+    @Column
+    @GeneratedValue(strategy = GenerationType.AUTO)
+<span class="fc" id="L28">    private UUID id;</span>
+
+
+    @Column
+    @Enumerated(EnumType.STRING)
+<span class="fc" id="L33">    private ActionType actionType;</span>
+
+
+    @Column
+<span class="fc" id="L37">    private String reason;</span>
+
+
+<span class="fc" id="L40">    @Column</span>
+    @Enumerated(EnumType.STRING)
+<span class="fc" id="L42">    private ActionCreationType actionCreationType = ActionCreationType.USERGENERATED;</span>
+
+
+    @Column
+    @Enumerated(EnumType.STRING)
+<span class="fc" id="L47">    private ActionStatus actionStatus;</span>
+
+
+    @JsonIgnore
+    @ManyToOne
+<span class="nc" id="L52">    private Card card;</span>
+
+    @Column
+<span class="fc" id="L55">    private HashMap&lt;String, String&gt; details;</span>
+
+    @Temporal(value = TemporalType.TIMESTAMP)
+    @Column
+<span class="fc" id="L59">    private Date createdAt;</span>
+
+    @Column
+<span class="fc" id="L62">    private String createdBy;</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

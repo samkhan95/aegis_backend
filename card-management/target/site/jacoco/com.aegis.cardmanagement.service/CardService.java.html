@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CardService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cardmanagement</a> &gt; <a href="index.source.html" class="el_package">com.aegis.cardmanagement.service</a> &gt; <span class="el_source">CardService.java</span></div><h1>CardService.java</h1><pre class="source lang-java linenums">package com.aegis.cardmanagement.service;
+
+import com.aegis.cardmanagement.exception.SystemException;
+import com.aegis.cardmanagement.modal.CardAction;
+import com.aegis.cardmanagement.pojos.CardActionRequest;
+import com.aegis.cardmanagement.pojos.CardRequest;
+import com.aegis.cardmanagement.repository.CardRepository;
+import com.aegis.cardmanagement.exception.CardAlreadyExists;
+import com.aegis.cardmanagement.exception.CardNotFound;
+import com.aegis.cardmanagement.modal.Card;
+import com.aegis.cardmanagement.utils.DeviceManager;
+import com.aegis.cardmanagement.utils.Helper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+
+@Service
+<span class="fc" id="L23">@Setter</span>
+@Getter
+@Transactional
+<span class="fc" id="L26">public class CardService {</span>
+    @Autowired
+<span class="nc" id="L28">    CardRepository cardRepository;</span>
+
+    @Autowired
+<span class="nc" id="L31">    CardActionService cardActionService;</span>
+
+
+
+
+    public Card createCard(CardRequest cardRequest, String userEmail) throws CardAlreadyExists, CardNotFound, SystemException, JsonProcessingException {
+<span class="fc" id="L37">        List&lt;Card&gt; cards=cardRepository.findByHardwareId(cardRequest.getHardwareId());</span>
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">        if(cards.size()&gt;0){</span>
+<span class="nc" id="L39">            throw  new CardAlreadyExists(&quot;card already exists&quot;);</span>
+        }
+<span class="fc" id="L41">        Card card = Helper.copyCardDetails(cardRequest,new Card());</span>
+<span class="fc" id="L42">        card=cardRepository.save(card);</span>
+<span class="fc" id="L43">        CardActionRequest cardActionRequest=Helper.getActionRequestDetails(card, CardAction.ActionType.CREATE);</span>
+<span class="fc" id="L44">        cardActionService.createCardAction(card.getId(),cardActionRequest,userEmail);</span>
+<span class="fc" id="L45">        return card;</span>
+    }
+
+
+
+    public Card updateCard(CardRequest cardRequest, UUID cardId, String userEmail) throws CardNotFound, SystemException, JsonProcessingException {
+<span class="fc" id="L51">        Optional&lt;Card&gt; optionalCard=cardRepository.findById(cardId);</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">        if(!optionalCard.isPresent()){</span>
+<span class="nc" id="L53">            throw  new CardNotFound(&quot;card not found&quot;);</span>
+        }
+<span class="fc" id="L55">        Card card=optionalCard.get();</span>
+<span class="fc" id="L56">        card.setCardName(cardRequest.getCardName());</span>
+<span class="fc" id="L57">        CardActionRequest cardActionRequest=Helper.getActionRequestDetails(card, CardAction.ActionType.UPDATE);</span>
+<span class="fc" id="L58">        cardActionService.createCardAction(card.getId(),cardActionRequest,userEmail);</span>
+<span class="fc" id="L59">        return cardRepository.save(card);</span>
+
+    }
+
+    public Card updateCardStatus(UUID cardId, Card.Status status) throws CardNotFound{
+<span class="fc" id="L64">        Optional&lt;Card&gt; optionalCard=cardRepository.findById(cardId);</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if(!optionalCard.isPresent()){</span>
+<span class="nc" id="L66">            throw  new CardNotFound(&quot;card not found&quot;);</span>
+        }
+<span class="fc" id="L68">        Card card=optionalCard.get();</span>
+<span class="fc" id="L69">        card.setCardStatus(status);</span>
+<span class="fc" id="L70">        return cardRepository.save(card);</span>
+    }
+
+    public Card updateCardAssignment(UUID cardId,UUID assignmentId) throws CardNotFound{
+<span class="fc" id="L74">        Optional&lt;Card&gt; optionalCard=cardRepository.findById(cardId);</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if(!optionalCard.isPresent()){</span>
+<span class="nc" id="L76">            throw  new CardNotFound(&quot;card not found&quot;);</span>
+        }
+<span class="fc" id="L78">        Card card=optionalCard.get();</span>
+<span class="fc" id="L79">        card.setAssignmentId(assignmentId);</span>
+<span class="fc" id="L80">        return cardRepository.save(card);</span>
+    }
+
+    public void deleteCard(UUID cardId,String userEmail) throws CardNotFound, SystemException, JsonProcessingException {
+<span class="fc" id="L84">        Optional&lt;Card&gt; optionalCard=cardRepository.findById(cardId);</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        if(!optionalCard.isPresent()){</span>
+<span class="nc" id="L86">            throw  new CardNotFound(&quot;card not found&quot;);</span>
+        }
+<span class="fc" id="L88">        Card card=optionalCard.get();</span>
+<span class="fc" id="L89">        CardActionRequest cardActionRequest=Helper.getActionRequestDetails(card, CardAction.ActionType.DELETE);</span>
+<span class="fc" id="L90">        cardActionService.createCardAction(cardId,cardActionRequest,userEmail);</span>
+<span class="fc" id="L91">        cardRepository.deleteById(cardId);</span>
+<span class="fc" id="L92">    }</span>
+
+    public List&lt;Card&gt; getAllCards() throws SystemException{
+<span class="fc" id="L95">        List&lt;Card&gt; cards=null;</span>
+        try{
+<span class="fc" id="L97">            cards = cardRepository.findAll();</span>
+        }
+<span class="nc" id="L99">        catch (Exception systemException){</span>
+<span class="nc" id="L100">            throw  new SystemException(&quot;system exception&quot;);</span>
+<span class="fc" id="L101">        }</span>
+<span class="fc" id="L102">        return cards;</span>
+    }
+
+
+
+    public Card getCard(UUID cardId) throws  CardNotFound{
+<span class="fc" id="L108">        Optional&lt;Card&gt; optionalCard=cardRepository.findById(cardId);</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">        if(!optionalCard.isPresent()){</span>
+<span class="nc" id="L110">            throw  new CardNotFound(&quot;card not found&quot;);</span>
+        }
+<span class="fc" id="L112">        return optionalCard.get();</span>
+    }
+
+
+
+    public void checkIfCardExists(UUID cardId) throws CardNotFound{
+<span class="nc" id="L118">        Optional&lt;Card&gt; optionalCard=cardRepository.findById(cardId);</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if(!optionalCard.isPresent()){</span>
+<span class="nc" id="L120">            throw  new CardNotFound(&quot;card not found&quot;);</span>
+        }
+<span class="nc" id="L122">    }</span>
+
+}
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

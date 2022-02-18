@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OrganizationFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cardmanagement</a> &gt; <a href="index.source.html" class="el_package">com.aegis.cardmanagement.security</a> &gt; <span class="el_source">OrganizationFilter.java</span></div><h1>OrganizationFilter.java</h1><pre class="source lang-java linenums">package com.aegis.cardmanagement.security;
+
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class OrganizationFilter extends BasicAuthenticationFilter {
+
+
+    private String claimLink;
+
+    public OrganizationFilter(AuthenticationManager authenticationManager, String claimLink) {
+<span class="nc" id="L20">        super(authenticationManager);</span>
+<span class="nc" id="L21">        this.claimLink = claimLink;</span>
+
+<span class="nc" id="L23">    }</span>
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
+<span class="nc" id="L27">        String authHeader = request.getHeader(&quot;Authorization&quot;);</span>
+<span class="nc bnc" id="L28" title="All 2 branches missed.">        if (authHeader == null)</span>
+<span class="nc" id="L29">            throw new ServletException(&quot;Invalid Request, No authorization&quot;);</span>
+<span class="nc" id="L30">        String token = authHeader.substring(authHeader.lastIndexOf(&quot; &quot;) + 1);</span>
+<span class="nc" id="L31">        DecodedJWT decodedJWT = JWT.decode(token);</span>
+<span class="nc" id="L32">        String userEmail = decodedJWT.getClaim(claimLink).asString();</span>
+<span class="nc" id="L33">        request.setAttribute(&quot;userEmail&quot;, userEmail);</span>
+<span class="nc" id="L34">        chain.doFilter(request, response);</span>
+<span class="nc" id="L35">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

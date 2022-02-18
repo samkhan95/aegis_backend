@@ -1,0 +1,8 @@
+com/aegis/usermanagement/service/UserServiceTests.class
+com/aegis/usermanagement/helper/UserActionStore.class
+com/aegis/usermanagement/UserManagementApplicationTests.class
+com/aegis/usermanagement/controller/UserActionControllerTest.class
+com/aegis/usermanagement/helper/Helper.class
+com/aegis/usermanagement/helper/UserStore.class
+com/aegis/usermanagement/service/UserActionServiceTest.class
+com/aegis/usermanagement/controller/UserControllerTest.class

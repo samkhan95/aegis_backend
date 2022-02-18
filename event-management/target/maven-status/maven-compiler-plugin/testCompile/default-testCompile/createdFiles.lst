@@ -1,0 +1,6 @@
+com/aegis/eventmanagement/EventManagementApplicationTests.class
+com/aegis/eventmanagement/service/EventServiceTest.class
+com/aegis/eventmanagement/repository/event/EventRepositoryTest.class
+com/aegis/eventmanagement/helper/Helper.class
+com/aegis/eventmanagement/controller/EventControllersTest.class
+com/aegis/eventmanagement/helper/EventStore.class

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CardActionService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cardmanagement</a> &gt; <a href="index.source.html" class="el_package">com.aegis.cardmanagement.service</a> &gt; <span class="el_source">CardActionService.java</span></div><h1>CardActionService.java</h1><pre class="source lang-java linenums">package com.aegis.cardmanagement.service;
+
+
+import com.aegis.cardmanagement.exception.ActionNotFound;
+import com.aegis.cardmanagement.exception.CardNotFound;
+import com.aegis.cardmanagement.exception.CardToActionMismatch;
+import com.aegis.cardmanagement.exception.SystemException;
+import com.aegis.cardmanagement.modal.Card;
+import com.aegis.cardmanagement.modal.CardAction;
+import com.aegis.cardmanagement.pojos.CardActionRequest;
+import com.aegis.cardmanagement.repository.CardActionRepository;
+import com.aegis.cardmanagement.utils.DeviceManager;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+
+@Service
+@Transactional
+<span class="fc" id="L28">@Setter</span>
+@Getter
+<span class="fc" id="L30">public class CardActionService {</span>
+
+    @Autowired
+<span class="nc" id="L33">    private CardActionRepository cardActionRepository;</span>
+
+    @Autowired
+<span class="nc" id="L36">    private CardService cardService;</span>
+
+    @Autowired
+<span class="nc" id="L39">    DeviceManager deviceManager;</span>
+
+    public CardAction createCardAction(UUID cardId, CardActionRequest cardActionRequest, String userEmail) throws CardNotFound, JsonProcessingException {
+<span class="fc" id="L42">        Card.Status cardStatus = null;</span>
+<span class="fc" id="L43">        CardAction.ActionCreationType actionCreationType = CardAction.ActionCreationType.USERGENERATED;</span>
+<span class="fc" id="L44">        boolean isAssignUpdate = false;</span>
+<span class="pc bpc" id="L45" title="6 of 7 branches missed.">        switch (cardActionRequest.getActionType()) {</span>
+            case DELETE:
+            case UPDATE:
+            case CREATE:
+<span class="fc" id="L49">                cardStatus = null;</span>
+<span class="fc" id="L50">                break;</span>
+            case BLOCK:
+<span class="nc" id="L52">                cardStatus = Card.Status.BLOCKED;</span>
+<span class="nc" id="L53">                break;</span>
+            case UNASSIGN:
+<span class="nc" id="L55">                cardStatus = Card.Status.UNASSIGNED;</span>
+<span class="nc" id="L56">                break;</span>
+            case UNBLOCK:
+<span class="nc" id="L58">                cardStatus = Card.Status.UNBLOCKED;</span>
+<span class="nc" id="L59">                break;</span>
+            case ASSIGN:
+<span class="nc" id="L61">                cardStatus = Card.Status.ASSIGNED;</span>
+<span class="nc" id="L62">                isAssignUpdate = true;</span>
+<span class="nc" id="L63">                break;</span>
+            case EXTEND:
+<span class="nc" id="L65">                cardStatus = Card.Status.ASSIGNED;</span>
+<span class="nc" id="L66">                isAssignUpdate = true;</span>
+<span class="nc" id="L67">                actionCreationType = CardAction.ActionCreationType.SYSTEMGENERATED;</span>
+                break;
+        }
+<span class="fc" id="L70">        CardAction cardAction = new CardAction();</span>
+<span class="fc" id="L71">        copyDetails(cardAction, cardActionRequest, cardId);</span>
+<span class="fc" id="L72">        generateSystemDetails(cardAction, userEmail, actionCreationType);</span>
+<span class="fc" id="L73">        Card card = cardService.getCard(cardId);</span>
+<span class="fc" id="L74">        cardAction = cardActionRepository.save(cardAction);</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if (cardStatus != null) {</span>
+<span class="nc" id="L76">            cardService.updateCardStatus(cardId, cardStatus);</span>
+        }
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">        if (isAssignUpdate)</span>
+<span class="nc" id="L79">            cardService.updateCardAssignment(cardId, cardAction.getId());</span>
+
+       // if (cardActionRequest.getActionType() != CardAction.ActionType.CREATE) {
+         //   Optional&lt;CardAction&gt; latestAssignAction = cardActionRepository.findById(card.getAssignmentId());
+           // if (latestAssignAction.isPresent())
+           //     deviceManager.cardActionOnDevice(latestAssignAction.get(), card.getHardwareId(), cardActionRequest.getActionType());
+        //}
+
+
+<span class="fc" id="L88">        return cardAction;</span>
+    }
+
+
+    public List&lt;CardAction&gt; getAllActions(UUID cardId) throws SystemException, CardNotFound {
+<span class="nc" id="L93">        cardService.checkIfCardExists(cardId);</span>
+<span class="nc" id="L94">        List&lt;CardAction&gt; cardActions = null;</span>
+        try {
+<span class="nc" id="L96">            cardActions = cardActionRepository.findAllByCardId(cardId);</span>
+<span class="nc" id="L97">        } catch (Exception systemException) {</span>
+<span class="nc" id="L98">            throw new SystemException(&quot;system exception&quot;);</span>
+<span class="nc" id="L99">        }</span>
+<span class="nc" id="L100">        return cardActions;</span>
+    }
+
+    public CardAction getActionById(UUID cardId, UUID actionId) throws ActionNotFound, CardToActionMismatch, CardNotFound {
+<span class="nc" id="L104">        Optional&lt;CardAction&gt; optionalCardAction = cardActionRepository.findById(actionId);</span>
+<span class="nc" id="L105">        cardService.checkIfCardExists(cardId);</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (!optionalCardAction.isPresent()) {</span>
+<span class="nc" id="L107">            throw new ActionNotFound(&quot;action not found&quot;);</span>
+        }
+<span class="nc" id="L109">        CardAction cardAction = optionalCardAction.get();</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        if (!cardId.equals(cardAction.getCard().getId())) {</span>
+<span class="nc" id="L111">            throw new CardToActionMismatch(&quot;this action does not belong to this card&quot;);</span>
+        }
+<span class="nc" id="L113">        return cardAction;</span>
+    }
+
+
+    public void copyDetails(CardAction cardAction, CardActionRequest cardActionRequest, UUID cardId) throws CardNotFound {
+<span class="fc" id="L118">        cardAction.setActionType(cardActionRequest.getActionType());</span>
+<span class="fc" id="L119">        cardAction.setDetails(cardActionRequest.getDetails());</span>
+<span class="fc" id="L120">        cardAction.setReason(cardActionRequest.getReason());</span>
+<span class="fc" id="L121">        cardAction.setCard(cardService.getCard(cardId));</span>
+<span class="fc" id="L122">    }</span>
+
+    public void generateSystemDetails(CardAction cardAction, String userEmail, CardAction.ActionCreationType actionCreationType) {
+<span class="fc" id="L125">        cardAction.setCreatedAt(new Date());</span>
+<span class="fc" id="L126">        cardAction.setActionCreationType(actionCreationType);</span>
+<span class="fc" id="L127">        cardAction.setCreatedBy(userEmail);</span>
+<span class="fc" id="L128">    }</span>
+
+
+}
+
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

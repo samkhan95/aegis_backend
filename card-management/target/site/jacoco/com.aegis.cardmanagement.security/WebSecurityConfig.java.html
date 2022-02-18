@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebSecurityConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cardmanagement</a> &gt; <a href="index.source.html" class="el_package">com.aegis.cardmanagement.security</a> &gt; <span class="el_source">WebSecurityConfig.java</span></div><h1>WebSecurityConfig.java</h1><pre class="source lang-java linenums">package com.aegis.cardmanagement.security;
+
+
+import com.auth0.spring.security.api.JwtWebSecurityConfigurer;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+
+
+
+@Configuration
+@EnableSwagger2
+@EnableWebSecurity
+<span class="fc" id="L20">public class WebSecurityConfig extends WebSecurityConfigurerAdapter {</span>
+
+    @Value(value = &quot;${auth0.apiAudience}&quot;)
+    private String apiAudience;
+    @Value(value = &quot;${auth0.issuer}&quot;)
+    private String issuer;
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+<span class="fc" id="L29">        JwtWebSecurityConfigurer</span>
+<span class="fc" id="L30">                .forRS256(apiAudience, issuer)</span>
+<span class="fc" id="L31">                .configure(http)</span>
+<span class="fc" id="L32">                .cors().and().csrf().disable().authorizeRequests()</span>
+<span class="fc" id="L33">                .antMatchers(</span>
+                        &quot;/v2/api-docs&quot;,
+                        &quot;/swagger-resources&quot;,
+                        &quot;/swagger-resources/configuration/ui&quot;,
+                        &quot;/swagger-resources/configuration/security&quot;)
+<span class="fc" id="L38">                .permitAll()</span>
+<span class="fc" id="L39">                .antMatchers(&quot;/h2-console/**&quot;)</span>
+<span class="fc" id="L40">                 .permitAll()</span>
+<span class="fc" id="L41">                .antMatchers(HttpMethod.POST, &quot;/api/cards/**&quot;)</span>
+<span class="fc" id="L42">                .permitAll()</span>
+<span class="fc" id="L43">                .antMatchers(HttpMethod.GET, &quot;/api/cards/**&quot;)</span>
+<span class="fc" id="L44">                .permitAll()</span>
+<span class="fc" id="L45">                .antMatchers(HttpMethod.GET,&quot;/api/health**&quot;).permitAll();</span>
+
+
+
+<span class="fc" id="L49">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

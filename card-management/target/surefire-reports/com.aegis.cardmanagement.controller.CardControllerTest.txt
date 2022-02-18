@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.aegis.cardmanagement.controller.CardControllerTest
+-------------------------------------------------------------------------------
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.235 sec - in com.aegis.cardmanagement.controller.CardControllerTest
